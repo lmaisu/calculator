@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Price Calculator</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .category, .subcategory, .extras, .result {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #ffb800;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .highlight {
+            color: #ff914d; /* Highlight color for discount and benefits */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Price Calculator</h1>
+        <!-- Category Selection -->
+        <div class="category">
+            <label>Choose Category:</label>
+            <input type="radio" name="category" value="PC" onclick="updateOptions()"> PC
+            <input type="radio" name="category" value="PlayStation" onclick="updateOptions()"> PlayStation<br>
+        </div>
+
+        <!-- Subcategory Selection -->
+        <div class="subcategory" id="subcategory" style="display:none;">
+            <label>Choose Subcategory:</label>
+            <select id="subcategoryOptions" onchange="updateExtras()">
+                <option value="" disabled selected>Select an option</option>
+            </select>
+        </div>
+
+        <!-- Hours and Computers -->
+        <div class="extras" id="extras" style="display:none;">
+            <label>Choose Hours:</label>
+            <select id="hours" onchange="updatePrice()">
+                <!-- Dynamically populate hours -->
+            </select>
+            <label>Number of Computers:</label>
+            <select id="computers" onchange="updatePrice()">
+                <!-- Dynamically populate computers -->
+            </select>
+        </div>
+
+        <!-- Result -->
+        <div class="result" id="result">
+            <h2>Total Price: <span id="totalPrice">0₾</span></h2>
+            <p>Subtotal: <span id="subtotal">0₾</span></p>
+            <p id="discountWrapper" style="display:none;" class="highlight">Discount: <span id="discount"></span></p>
+            <p id="benefits" class="highlight"></p>
+        </div>
+    </div>
+
+    <script>
+        function updateOptions() {
+            const category = document.querySelector('input[name="category"]:checked')?.value;
+            const subcategory = document.getElementById('subcategory');
+            const options = document.getElementById('subcategoryOptions');
+            const extras = document.getElementById('extras');
+
+            // Show and reset subcategories
+            subcategory.style.display = 'block';
+            options.innerHTML = '<option value="" disabled selected>Select an option</option>';
+            extras.style.display = 'none';
+
+            // Populate subcategories based on category
+            if (category === 'PlayStation') {
+                options.innerHTML += `<option value="Basic">Basic</option>`;
+                options.innerHTML += `<option value="VIP">VIP</option>`;
+            } else if (category === 'PC') {
+                options.innerHTML += `<option value="Premium">Premium</option>`;
+                options.innerHTML += `<option value="Pro">Pro</option>`;
+                options.innerHTML += `<option value="Standard">Standard</option>`;
+            }
+
+            // Reset results
+            document.getElementById('totalPrice').innerText = '0₾';
+            document.getElementById('subtotal').innerText = '0₾';
+            document.getElementById('discountWrapper').style.display = 'none';
+            document.getElementById('benefits').innerText = '';
+        }
+
+        function updateExtras() {
+            const subcategory = document.getElementById('subcategoryOptions').value;
+            const extras = document.getElementById('extras');
+            const computers = document.getElementById('computers');
+            const hours = document.getElementById('hours');
+
+            // Show extras section
+            extras.style.display = 'block';
+
+            // Update computer and hour limits
+            computers.innerHTML = '';
+            hours.innerHTML = '';
+            let maxComputers = 1;
+            if (subcategory === 'Basic') maxComputers = 7;
+            if (subcategory === 'VIP') maxComputers = 2;
+            if (subcategory === 'Premium') maxComputers = 7;
+            if (subcategory === 'Pro') maxComputers = 7;
+            if (subcategory === 'Standard') maxComputers = 10;
+
+            for (let i = 1; i <= maxComputers; i++) {
+                computers.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+
+            for (let i = 1; i <= 17; i++) {
+                hours.innerHTML += `<option value="${i}">${i} Hours</option>`;
+            }
+
+            updatePrice();
+        }
+
+        function updatePrice() {
+            const category = document.querySelector('input[name="category"]:checked')?.value;
+            const subcategory = document.getElementById('subcategoryOptions').value;
+            const hours = parseInt(document.getElementById('hours').value) || 1;
+            const computers = parseInt(document.getElementById('computers').value) || 1;
+            let pricePerHour = 0;
+            let price = 0;
+            let subtotal = 0;
+            let discount = 0;
+            let benefits = '';
+
+            // PlayStation Pricing Logic
+            if (category === 'PlayStation') {
+                if (subcategory === 'Basic') {
+                    pricePerHour = hours <= 2 ? 8 : 12;
+                    subtotal = hours * 8; // Base rate
+                    price = hours * pricePerHour;
+                    const slushies = hours >= 2 ? `Includes ${computers * 2} free slushies.` : '';
+                    benefits = `${slushies}`;
+                } else if (subcategory === 'VIP') {
+                    if (hours === 1) pricePerHour = 25;
+                    else if (hours === 2) pricePerHour = 22.5;
+                    else pricePerHour = 20;
+                    subtotal = hours * 25; // Base rate
+                    price = hours * pricePerHour;
+                    benefits = hours >= 2 ? 'Includes free slushies.' : '';
+                }
+            }
+
+            // PC Pricing Logic
+            if (category === 'PC') {
+                if (subcategory === 'Premium') {
+                    pricePerHour = hours <= 2 ? 10 : hours <= 4 ? 9 : 8;
+                    subtotal = hours * 10; // Base rate
+                    price = hours * pricePerHour;
+                    benefits = hours >= 2 ? 'Includes free slushies or hot drinks.' : '';
+                } else if (subcategory === 'Pro') {
+                    pricePerHour = hours <= 2 ? 8 : hours <= 4 ? 7 : 7;
+                    subtotal = hours * 8;
+                    price = hours * pricePerHour;
+                    benefits = hours >= 2 ? 'Includes free slushies or hot drinks.' : '';
+                } else if (subcategory === 'Standard') {
+                    pricePerHour = 6;
+                    subtotal = hours * pricePerHour;
+                    price = subtotal;
+                    benefits = hours >= 2 ? 'Includes free slushie.' : '';
+                }
+            }
+
+            // Multiply by number of computers
+            subtotal *= computers;
+            price *= computers;
+
+            // Calculate discount
+            discount = subtotal - price;
+
+            // Update Results
+            document.getElementById('totalPrice').innerText = `${price.toFixed(2)}₾`;
+            document.getElementById('subtotal').innerText = `${subtotal.toFixed(2)}₾`;
+            
+            if (discount > 0) {
+                document.getElementById('discountWrapper').style.display = 'block';
+                document.getElementById('discount').innerText = `- ${discount.toFixed(2)}₾`;
+            } else {
+                document.getElementById('discountWrapper').style.display = 'none';
+            }
+            
+            document.getElementById('benefits').innerText = benefits;
+        }
+    </script>
+</body>
+</html>
