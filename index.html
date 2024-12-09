@@ -96,7 +96,7 @@
             // Populate subcategories based on category
             if (category === 'PlayStation') {
                 options.innerHTML += `<option value="Basic">Basic</option>`;
-                options.innerHTML += `<option value="VIP">VIP</option>`;
+                options.innerHTML += `<option value="VIP ROOMS">VIP ROOMS</option>`;
             } else if (category === 'PC') {
                 options.innerHTML += `<option value="Premium">Premium</option>`;
                 options.innerHTML += `<option value="Pro">Pro</option>`;
@@ -124,7 +124,7 @@
             hours.innerHTML = '';
             let maxComputers = 1;
             if (subcategory === 'Basic') maxComputers = 7;
-            if (subcategory === 'VIP') maxComputers = 2;
+            if (subcategory === 'VIP ROOMS') maxComputers = 2;
             if (subcategory === 'Premium') maxComputers = 7;
             if (subcategory === 'Pro') maxComputers = 7;
             if (subcategory === 'Standard') maxComputers = 10;
@@ -154,15 +154,16 @@
             // PlayStation Pricing Logic
             if (category === 'PlayStation') {
                 if (subcategory === 'Basic') {
-                    pricePerHour = hours <= 2 ? 8 : 12;
-                    subtotal = hours * 8; // Base rate
-                    price = hours * pricePerHour;
+                    pricePerHour = 8; // Standard rate
+                    subtotal = hours * pricePerHour;
+                    price = subtotal;
                     const slushies = hours >= 2 ? `Includes ${computers * 2} free slushies.` : '';
                     benefits = `${slushies}`;
-                } else if (subcategory === 'VIP') {
+                } else if (subcategory === 'VIP ROOMS') {
                     if (hours === 1) pricePerHour = 25;
                     else if (hours === 2) pricePerHour = 22.5;
-                    else pricePerHour = 20;
+                    else if (hours === 3 || hours === 5) pricePerHour = 20; // Discounted rate
+                    else pricePerHour = 25; // Standard rate
                     subtotal = hours * 25; // Base rate
                     price = hours * pricePerHour;
                     benefits = hours >= 2 ? 'Includes free slushies.' : '';
@@ -172,14 +173,42 @@
             // PC Pricing Logic
             if (category === 'PC') {
                 if (subcategory === 'Premium') {
-                    pricePerHour = hours <= 2 ? 10 : hours <= 4 ? 9 : 8;
-                    subtotal = hours * 10; // Base rate
-                    price = hours * pricePerHour;
+                    if (hours === 3) {
+                        pricePerHour = 9; // Discounted rate
+                        subtotal = hours * 10; // Base rate
+                        price = hours * pricePerHour;
+                    } else if (hours === 5) {
+                        pricePerHour = 8; // Discounted rate
+                        subtotal = hours * 10; // Base rate
+                        price = hours * pricePerHour;
+                    } else if (hours > 3 && hours < 5) {
+                        price = 27 + (hours - 3) * 10;
+                        subtotal = hours * 10;
+                    } else if (hours > 5) {
+                        price = 40 + (hours - 5) * 10;
+                        subtotal = hours * 10;
+                    } else {
+                        pricePerHour = 10; // Standard rate
+                        subtotal = hours * pricePerHour;
+                        price = subtotal;
+                    }
                     benefits = hours >= 2 ? 'Includes free slushies or hot drinks.' : '';
                 } else if (subcategory === 'Pro') {
-                    pricePerHour = hours <= 2 ? 8 : hours <= 4 ? 7 : 7;
-                    subtotal = hours * 8;
-                    price = hours * pricePerHour;
+                    if (hours === 3 || hours === 5) {
+                        pricePerHour = 7; // Discounted rate
+                        subtotal = hours * 8; // Base rate
+                        price = hours * pricePerHour;
+                    } else if (hours > 3 && hours < 5) {
+                        price = 22 + (hours - 3) * 8;
+                        subtotal = hours * 8;
+                    } else if (hours > 5) {
+                        price = 35 + (hours - 5) * 8;
+                        subtotal = hours * 8;
+                    } else {
+                        pricePerHour = 8; // Standard rate
+                        subtotal = hours * pricePerHour;
+                        price = subtotal;
+                    }
                     benefits = hours >= 2 ? 'Includes free slushies or hot drinks.' : '';
                 } else if (subcategory === 'Standard') {
                     pricePerHour = 6;
