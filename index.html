@@ -60,15 +60,15 @@
             </select>
         </div>
 
-        <!-- Hours and Computers -->
+        <!-- Hours and Units -->
         <div class="extras" id="extras" style="display:none;">
             <label>Choose Hours:</label>
             <select id="hours" onchange="updatePrice()">
                 <!-- Dynamically populate hours -->
             </select>
-            <label>Number of Computers:</label>
+            <label id="unitsLabel"></label>
             <select id="computers" onchange="updatePrice()">
-                <!-- Dynamically populate computers -->
+                <!-- Dynamically populate units -->
             </select>
         </div>
 
@@ -115,21 +115,29 @@
             const extras = document.getElementById('extras');
             const computers = document.getElementById('computers');
             const hours = document.getElementById('hours');
+            const unitsLabel = document.getElementById('unitsLabel');
 
             // Show extras section
             extras.style.display = 'block';
 
-            // Update computer and hour limits
+            // Update text for units based on subcategory
+            if (subcategory === 'Basic' || subcategory === 'VIP ROOMS') {
+                unitsLabel.innerText = subcategory === 'Basic' ? 'How many PlayStations?' : 'How many Rooms?';
+            } else {
+                unitsLabel.innerText = 'How many Computers?';
+            }
+
+            // Update units and hour limits
             computers.innerHTML = '';
             hours.innerHTML = '';
-            let maxComputers = 1;
-            if (subcategory === 'Basic') maxComputers = 7;
-            if (subcategory === 'VIP ROOMS') maxComputers = 2;
-            if (subcategory === 'Premium') maxComputers = 7;
-            if (subcategory === 'Pro') maxComputers = 7;
-            if (subcategory === 'Standard') maxComputers = 10;
+            let maxUnits = 1;
+            if (subcategory === 'Basic') maxUnits = 7;
+            if (subcategory === 'VIP ROOMS') maxUnits = 2;
+            if (subcategory === 'Premium') maxUnits = 7;
+            if (subcategory === 'Pro') maxUnits = 7;
+            if (subcategory === 'Standard') maxUnits = 10;
 
-            for (let i = 1; i <= maxComputers; i++) {
+            for (let i = 1; i <= maxUnits; i++) {
                 computers.innerHTML += `<option value="${i}">${i}</option>`;
             }
 
@@ -145,7 +153,6 @@
             const subcategory = document.getElementById('subcategoryOptions').value;
             const hours = parseInt(document.getElementById('hours').value) || 1;
             const computers = parseInt(document.getElementById('computers').value) || 1;
-            let pricePerHour = 0;
             let price = 0;
             let subtotal = 0;
             let discount = 0;
@@ -154,18 +161,21 @@
             // PlayStation Pricing Logic
             if (category === 'PlayStation') {
                 if (subcategory === 'Basic') {
-                    pricePerHour = 8; // Standard rate
-                    subtotal = hours * pricePerHour;
-                    price = subtotal;
-                    const slushies = hours >= 2 ? `Includes ${computers * 2} free slushies.` : '';
-                    benefits = `${slushies}`;
+                    price = 8 * hours * computers;
+                    subtotal = price;
+                    benefits = hours >= 2 ? `Includes ${computers * 2} free slushies.` : '';
                 } else if (subcategory === 'VIP ROOMS') {
-                    if (hours === 1) pricePerHour = 25;
-                    else if (hours === 2) pricePerHour = 22.5;
-                    else if (hours === 3 || hours === 5) pricePerHour = 20; // Discounted rate
-                    else pricePerHour = 25; // Standard rate
-                    subtotal = hours * 25; // Base rate
-                    price = hours * pricePerHour;
+                    subtotal = 25 * hours * computers; // Base rate
+                    if (hours === 3) {
+                        price = 65 * computers;
+                    } else if (hours > 3) {
+                        price = (65 + (hours - 3) * 25) * computers;
+                    } else if (hours === 2) {
+                        price = 45 * computers;
+                    } else {
+                        price = 25 * hours * computers;
+                    }
+                    discount = subtotal - price;
                     benefits = hours >= 2 ? 'Includes free slushies.' : '';
                 }
             }
@@ -174,70 +184,63 @@
             if (category === 'PC') {
                 if (subcategory === 'Premium') {
                     if (hours === 3) {
-                        pricePerHour = 9; // Discounted rate
-                        subtotal = hours * 10; // Base rate
-                        price = hours * pricePerHour;
+                        price = 27 * computers;
+                        subtotal = 30 * computers;
                     } else if (hours === 5) {
-                        pricePerHour = 8; // Discounted rate
-                        subtotal = hours * 10; // Base rate
-                        price = hours * pricePerHour;
+                        price = 40 * computers;
+                        subtotal = 50 * computers;
                     } else if (hours > 3 && hours < 5) {
-                        price = 27 + (hours - 3) * 10;
-                        subtotal = hours * 10;
+                        price = (27 + (hours - 3) * 10) * computers;
+                        subtotal = hours * 10 * computers;
                     } else if (hours > 5) {
-                        price = 40 + (hours - 5) * 10;
-                        subtotal = hours * 10;
+                        price = (40 + (hours - 5) * 10) * computers;
+                        subtotal = hours * 10 * computers;
                     } else {
-                        pricePerHour = 10; // Standard rate
-                        subtotal = hours * pricePerHour;
-                        price = subtotal;
+                        price = 10 * hours * computers;
+                        subtotal = price;
                     }
+                    discount = subtotal - price;
                     benefits = hours >= 2 ? 'Includes free slushies or hot drinks.' : '';
                 } else if (subcategory === 'Pro') {
-                    if (hours === 3 || hours === 5) {
-                        pricePerHour = 7; // Discounted rate
-                        subtotal = hours * 8; // Base rate
-                        price = hours * pricePerHour;
+                    if (hours === 3) {
+                        price = 22 * computers;
+                        subtotal = 24 * computers;
+                    } else if (hours === 5) {
+                        price = 35 * computers;
+                        subtotal = 40 * computers;
                     } else if (hours > 3 && hours < 5) {
-                        price = 22 + (hours - 3) * 8;
-                        subtotal = hours * 8;
+                        price = (22 + (hours - 3) * 8) * computers;
+                        subtotal = hours * 8 * computers;
                     } else if (hours > 5) {
-                        price = 35 + (hours - 5) * 8;
-                        subtotal = hours * 8;
+                        price = (35 + (hours - 5) * 8) * computers;
+                        subtotal = hours * 8 * computers;
                     } else {
-                        pricePerHour = 8; // Standard rate
-                        subtotal = hours * pricePerHour;
-                        price = subtotal;
+                        price = 8 * hours * computers;
+                        subtotal = price;
                     }
+                    discount = subtotal - price;
                     benefits = hours >= 2 ? 'Includes free slushies or hot drinks.' : '';
                 } else if (subcategory === 'Standard') {
-                    pricePerHour = 6;
-                    subtotal = hours * pricePerHour;
-                    price = subtotal;
+                    price = 6 * hours * computers;
+                    subtotal = price;
+                    discount = 0;
                     benefits = hours >= 2 ? 'Includes free slushie.' : '';
                 }
             }
 
-            // Multiply by number of computers
-            subtotal *= computers;
-            price *= computers;
+            // Update results
+document.getElementById('totalPrice').innerText = `${price.toFixed(2)}₾`;
+document.getElementById('subtotal').innerText = `${subtotal.toFixed(2)}₾`;
 
-            // Calculate discount
-            discount = subtotal - price;
+if (discount > 0) {
+    document.getElementById('discountWrapper').style.display = 'block';
+    document.getElementById('discount').innerText = `- ${discount.toFixed(2)}₾`;
+} else {
+    document.getElementById('discountWrapper').style.display = 'none';
+}
 
-            // Update Results
-            document.getElementById('totalPrice').innerText = `${price.toFixed(2)}₾`;
-            document.getElementById('subtotal').innerText = `${subtotal.toFixed(2)}₾`;
-            
-            if (discount > 0) {
-                document.getElementById('discountWrapper').style.display = 'block';
-                document.getElementById('discount').innerText = `- ${discount.toFixed(2)}₾`;
-            } else {
-                document.getElementById('discountWrapper').style.display = 'none';
-            }
-            
-            document.getElementById('benefits').innerText = benefits;
-        }
-    </script>
+document.getElementById('benefits').innerText = benefits;
+}
+</script>
 </body>
 </html>
